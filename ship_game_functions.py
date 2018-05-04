@@ -32,7 +32,7 @@ class Ship(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.x, self.rect.y = start_pos
         self.color = clr
-        if trail == True:
+        if trail:
             if self.heading == 180 or self.heading == 0:  # These if statements set the image position based on the heading.
                 self.y = self.rect.y - self.rect.height/2 - self.rect.width/2
             elif self.heading == 90 or self.heading == 270:
@@ -224,14 +224,14 @@ class Trail(pygame.sprite.Sprite):
         """
         (x, y) = self.pos
 
-        if self.heading == 0 or self.heading == 180:  # updates the width of the rectangle to the distance between the original position of the trail and the new position of the ship if the ship is moving in the x direction.
+        if self.heading == 0 or self.heading == 180:  # Updates the width of the rectangle to the distance between the original position of the trail and the new position of the ship if the ship is moving in the x direction.
             width = abs(x - x_curr)
             self.rect.width = width
 
         else:
             width = 2
 
-        if self.heading == 90 or self.heading == 270:  # updates the height of the rectangle to the distance between the original position of the trail and the new position of the ship if the ship is moving in the y direction.
+        if self.heading == 90 or self.heading == 270:  # Updates the height of the rectangle to the distance between the original position of the trail and the new position of the ship if the ship is moving in the y direction.
             height = abs(y - y_curr)
             self.rect.height = height
 

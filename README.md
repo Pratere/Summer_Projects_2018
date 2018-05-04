@@ -4,6 +4,7 @@ Making games over the Summer of 2018 to develop programming skills
 * Platformer
 * Ships Part II Shooting at each other
 * Text based game using tkinter
+1. Mind game w/ changing colors and button positions
 * Others...
 
 I added the classes of the ships game to this repo so we can use/edit/reference them for anything new we want to make.
