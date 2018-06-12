@@ -4,17 +4,62 @@ from pygame import transform
 
 
 class Piece(pygame.sprite.Sprite):
-    def __init__(self, spriteRect, piece_name):
+    def __init__(self, spriteRect, piece_name, player):
         pygame.sprite.Sprite.__init__(self)
         self.rect = None
         self.spriteRect = spriteRect
         self.name = piece_name
-        self.pos = (0, 0)
+        self.team = player
+        self.moved = False
 
-    def moveIt(self, x,y):
-        self.rect.x, self.rect.y = (x, y)
-        print(self.rect.x, self.rect.y)
+    def moveIt(self, x, y):
+        if self.checkLegality(x, y):
+            self.rect.x, self.rect.y = (x, y)
+            return True
 
+    def checkLegality(self, x, y):
+        if self.name[0] == "P":
+            if self.team == 1:
+                if not self.moved:
+                    print("Not moved")
+                    if abs(self.rect.y - y) <= 100 and y - self.rect.y > 0 and self.rect.x - x == 0:
+                        self.moved = True
+                        print("Moved")
+                        return True
+                elif abs(self.rect.y - y) == 50 and y - self.rect.y > 0 and self.rect.x - x == 0:
+                    return True
+            elif self.team == 2:
+                if not self.moved:
+                    print("Not moved")
+                    if abs(self.rect.y - y) <= 100 and y - self.rect.y < 0 and self.rect.x - x == 0:
+                        self.moved = True
+                        print("Moved")
+                        return True
+                elif abs(self.rect.y - y) == 50 and y - self.rect.y < 0 and self.rect.x - x == 0:
+                    return True
+
+        elif self.name == "K":
+            if abs(self.rect.y - y) <= 50 and abs(x - self.rect.x) <= 50:
+                return True
+
+        elif self.name == "Q":
+            if (abs(self.rect.x - x) == abs(self.rect.y - y)) or self.rect.x == x or self.rect.y == y:
+                return True
+
+        elif self.name[1] == "R":
+            if self.rect.x == x or self.rect.y == y:
+                return True
+
+        elif self.name[1] == "B":
+            if abs(self.rect.x - x) == abs(self.rect.y - y):
+                return True
+
+        elif self.name[1] == "K":
+            if (abs(self.rect.x - x) == 50 and abs(self.rect.y - y) == 100) or (abs(self.rect.x - x) == 100 and abs(self.rect.y - y) == 50):
+                return True
+
+        else:
+            return False
 
 class Player:
     def __init__(self, player, piecesSprite, board):
@@ -29,25 +74,23 @@ class Player:
             y = 5
         else:
             y = 65
-        self.pieces.add(Piece(Rect(217, y, 50, 50), "RR"))
-        self.pieces.add(Piece(Rect(163, y, 50, 50), "RK"))
-        self.pieces.add(Piece(Rect(107, y, 50, 50), "RB"))
-        self.pieces.add(Piece(Rect(5, y, 50, 50), "K"))
-        self.pieces.add(Piece(Rect(57, y, 50, 50), "Q"))
-        self.pieces.add(Piece(Rect(107, y, 50, 50), "LB"))
-        self.pieces.add(Piece(Rect(163, y, 50, 50), "LK"))
-        self.pieces.add(Piece(Rect(217, y, 50, 50), "LR"))
+        self.pieces.add(Piece(Rect(217, y, 50, 50), "RR", self.player))
+        self.pieces.add(Piece(Rect(163, y, 50, 50), "RK", self.player))
+        self.pieces.add(Piece(Rect(107, y, 50, 50), "RB", self.player))
+        self.pieces.add(Piece(Rect(5, y, 50, 50), "K", self.player))
+        self.pieces.add(Piece(Rect(57, y, 50, 50), "Q", self.player))
+        self.pieces.add(Piece(Rect(107, y, 50, 50), "LB", self.player))
+        self.pieces.add(Piece(Rect(163, y, 50, 50), "LK", self.player))
+        self.pieces.add(Piece(Rect(217, y, 50, 50), "LR", self.player))
         for i in range(8):
-            self.pieces.add(Piece(Rect(267, y, 50, 50), "P{0}".format(i+1)))
+            self.pieces.add(Piece(Rect(267, y, 50, 50), "P{0}".format(i+1), self.player))
         if self.player == 1:
-            print(self.pieces)
             square_index = 0
             for piece in self.pieces:
                 square = self.board.squares[square_index]
                 piece.rect = Rect(square.x, square.y, 50, 50)
                 square_index += 1
         else:
-            y = 65
             square_index = 63
             for piece in self.pieces:
                 square = self.board.squares[square_index]
@@ -64,8 +107,10 @@ class Player:
     def move_piece(self):
         choice = False
         selectedPiece = None
-        selctedAPiece = False
+        selectedAPiece = False
+        pieceBlocking = False
         while choice == False:
+            pieceBlocking = False
             ev = pygame.event.poll()
             if ev.type == KEYDOWN:
                 key = ev.dict['key']
@@ -73,22 +118,46 @@ class Player:
                     quit()
             if ev.type == MOUSEBUTTONUP:
                 x, y = pygame.mouse.get_pos()
-                print(x, y)
-                for square in self.board.squares:
-                    if selctedAPiece == True:
+                if selectedAPiece == True:
+                    for square in self.board.squares:
                         if square.collidepoint(x, y):
-                            if (square.x, square.y) != selctedPiece.pos:
-                                selctedPiece.moveIt(square.x, square.y)
-                                choice = True
-                                print("Nope Here")
+                            for piece in self.pieces:
+                                if piece.rect.x == square.x and piece.rect.y == square.y:
+                                    pieceBlocking = True
+                            if not pieceBlocking:
+                                if self.checkPath(selectedPiece, square):
+                                    if selectedPiece.moveIt(square.x, square.y):
+                                        self.checkTakePiece(selectedPiece)
+                                        choice = True
                 for piece in self.pieces:
                     if piece.rect.collidepoint(x, y):
-                        selctedPiece = piece
-                        selctedAPiece = True
-                        print("Clicked Here")
+                        print(piece.name)
+                        selectedPiece = piece
+                        selectedAPiece = True
 
+    def checkTakePiece(self, pieceMoved):
+        for piece in self.opponent.pieces:
+            if (piece.rect.x == pieceMoved.rect.x and piece.rect.y == pieceMoved.rect.y):
+                piece.kill()
 
-        print("Out")
+    def checkPath(self, pieceToMove, destinationSquare):
+        print(pieceToMove.name)
+        if pieceToMove.name == "RR":
+            print("Checking Rooks Path")
+            if destinationSquare.x - pieceToMove.rect.x == 0:
+                diff = abs(pieceToMove.rect.y - destinationSquare.y)
+                diff = diff % 50
+                for i in range(1, diff):
+                    add = i * 50
+                    if pieceToMove.rect.y - destinationSquare.y < 0:
+                        for piece in self.pieces:
+                            if piece.rect.x == pieceToMove.rect.x and piece.rect.y == (pieceToMove.rect.y + add):
+                                print("You got blocked")
+                                return False
+            elif destinationSquare.y - pieceToMove.rect.y == 0:
+                diff = abs(pieceToMove.rect.x - destinationSquare.x) - 50
+                diff = diff % 50
+        return True
 
 class Board:
     def __init__(self, window):
@@ -156,6 +225,8 @@ def main():
     while 1:
         ev = pygame.event.poll()
         theGame.player1.move_piece()
+        theGame.drawMatch()
+        theGame.player2.move_piece()
         theGame.drawMatch()
         if ev.type == KEYDOWN:
             key = ev.dict['key']
