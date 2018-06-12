@@ -1,4 +1,4 @@
-from "C:/Users/pratere/github/python/Summer_Projects_2018/Chess.py" import *
+from Chess.py import *
 
 class ChessGame:
     def __init__(self, window, pieceSprites):

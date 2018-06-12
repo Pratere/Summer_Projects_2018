@@ -4,21 +4,22 @@ from pygame import transform
 
 
 class Piece(pygame.sprite.Sprite):
-    def __init__(self, rect, piece_name):
+    def __init__(self, spriteRect, piece_name):
         pygame.sprite.Sprite.__init__(self)
-        self.rect = rect
+        self.rect = None
+        self.spriteRect = spriteRect
         self.name = piece_name
         self.pos = (0, 0)
 
-    def moveIt(self, newX, newY):
-        self.pos = (newX, newY)
+    def moveIt(self, x,y):
+        self.rect.x, self.rect.y = (x, y)
+        print(self.rect.x, self.rect.y)
 
 
 class Player:
     def __init__(self, player, piecesSprite, board):
-        self.pieceNames = ["RR", "RK", "RB", "K", "Q", "LB", "LK", "LR", "P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8"]
         self.player = player
-        self.pieces = []
+        self.pieces = pygame.sprite.Group()
         self.pieceSprites = piecesSprite
         self.board = board
         self.opponent = None
@@ -28,39 +29,41 @@ class Player:
             y = 5
         else:
             y = 65
-        self.pieces.append(Piece(Rect(220, y, 50, 50), "RR"))
-        self.pieces.append(Piece(Rect(163, y, 50, 50), "RK"))
-        self.pieces.append(Piece(Rect(107, y, 50, 50), "RB"))
-        self.pieces.append(Piece(Rect(5, y, 50, 50), "K"))
-        self.pieces.append(Piece(Rect(57, y, 50, 50), "Q"))
-        self.pieces.append(Piece(Rect(107, y, 50, 50), "LB"))
-        self.pieces.append(Piece(Rect(163, y, 50, 50), "LK"))
-        self.pieces.append(Piece(Rect(220, y, 50, 50), "LR"))
+        self.pieces.add(Piece(Rect(217, y, 50, 50), "RR"))
+        self.pieces.add(Piece(Rect(163, y, 50, 50), "RK"))
+        self.pieces.add(Piece(Rect(107, y, 50, 50), "RB"))
+        self.pieces.add(Piece(Rect(5, y, 50, 50), "K"))
+        self.pieces.add(Piece(Rect(57, y, 50, 50), "Q"))
+        self.pieces.add(Piece(Rect(107, y, 50, 50), "LB"))
+        self.pieces.add(Piece(Rect(163, y, 50, 50), "LK"))
+        self.pieces.add(Piece(Rect(217, y, 50, 50), "LR"))
         for i in range(8):
-            self.pieces.append(Piece(Rect(267, y, 50, 50), "P{0}".format(i+1)))
+            self.pieces.add(Piece(Rect(267, y, 50, 50), "P{0}".format(i+1)))
         if self.player == 1:
+            print(self.pieces)
             square_index = 0
             for piece in self.pieces:
                 square = self.board.squares[square_index]
-                piece.pos = (square.x, square.y)
+                piece.rect = Rect(square.x, square.y, 50, 50)
                 square_index += 1
         else:
             y = 65
             square_index = 63
             for piece in self.pieces:
                 square = self.board.squares[square_index]
-                piece.pos = (square.x, square.y)
+                piece.rect = Rect(square.x, square.y, 50, 50)
                 square_index -= 1
 
 
 
     def drawPieces(self):
         for piece in self.pieces:
-            self.board.window.blit(self.pieceSprites, piece.pos, piece.rect)
+            self.board.window.blit(self.pieceSprites, (piece.rect.x, piece.rect.y), piece.spriteRect)
 
 
     def move_piece(self):
         choice = False
+        selectedPiece = None
         selctedAPiece = False
         while choice == False:
             ev = pygame.event.poll()
@@ -68,22 +71,24 @@ class Player:
                 key = ev.dict['key']
                 if key == 27:
                     quit()
-            if ev.type == MOUSEBUTTONDOWN:
-                (mouseX, mouseY) = pygame.mouse.get_pos()
-                print(mouseX, mouseY)
-                for piece in self.pieces:
-                    if piece.rect.collidepoint(mouseX, mouseY):
-                        selctedPiece = piece
-                        selctedAPiece = True
-                        print("Clicked Here")
-
+            if ev.type == MOUSEBUTTONUP:
+                x, y = pygame.mouse.get_pos()
+                print(x, y)
                 for square in self.board.squares:
-                    if square.collidepoint(mouseX, mouseY):
-                        if selctedAPiece == True:
+                    if selctedAPiece == True:
+                        if square.collidepoint(x, y):
                             if (square.x, square.y) != selctedPiece.pos:
                                 selctedPiece.moveIt(square.x, square.y)
                                 choice = True
                                 print("Nope Here")
+                for piece in self.pieces:
+                    if piece.rect.collidepoint(x, y):
+                        selctedPiece = piece
+                        selctedAPiece = True
+                        print("Clicked Here")
+
+
+        print("Out")
 
 class Board:
     def __init__(self, window):
