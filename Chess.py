@@ -19,19 +19,41 @@ class Piece(pygame.sprite.Sprite):
 
     def checkLegality(self, x, y):
         if self.name[0] == "P":
-            if self.team == 1:
-                if not self.moved:
+            if self.team.player == 1:
+                if y - self.rect.y <= 100 and abs(x - self.rect.x) == 50:
+                    for piece in self.team.opponent.pieces:
+                        if (piece.rect.x, piece.rect.y) == (x, y):
+                            self.moved = True
+                            return True
+                elif not self.moved:
                     if abs(self.rect.y - y) <= 100 and y - self.rect.y > 0 and self.rect.x - x == 0:
+                        for piece in self.team.opponent.pieces:
+                            if (piece.rect.x, piece.rect.y) == (x, y):
+                                return False
                         self.moved = True
                         return True
                 elif abs(self.rect.y - y) == 50 and y - self.rect.y > 0 and self.rect.x - x == 0:
+                    for piece in self.team.opponent.pieces:
+                        if (piece.rect.x, piece.rect.y) == (x, y):
+                            return False
                     return True
-            elif self.team == 2:
+            else:
+                if self.rect.y - y <= 100 and abs(x - self.rect.x) == 50:
+                    for piece in self.team.opponent.pieces:
+                        if (piece.rect.x, piece.rect.y) == (x, y):
+                            self.moved = True
+                            return True
                 if not self.moved:
                     if abs(self.rect.y - y) <= 100 and y - self.rect.y < 0 and self.rect.x - x == 0:
+                        for piece in self.team.opponent.pieces:
+                            if (piece.rect.x, piece.rect.y) == (x, y):
+                                return False
                         self.moved = True
                         return True
                 elif abs(self.rect.y - y) == 50 and y - self.rect.y < 0 and self.rect.x - x == 0:
+                    for piece in self.team.opponent.pieces:
+                        if (piece.rect.x, piece.rect.y) == (x, y):
+                            return False
                     return True
 
         elif self.name == "K":
@@ -70,16 +92,16 @@ class Player:
             y = 5
         else:
             y = 65
-        self.pieces.add(Piece(Rect(217, y, 50, 50), "RR", self.player))
-        self.pieces.add(Piece(Rect(163, y, 50, 50), "RK", self.player))
-        self.pieces.add(Piece(Rect(107, y, 50, 50), "RB", self.player))
-        self.pieces.add(Piece(Rect(5, y, 50, 50), "K", self.player))
-        self.pieces.add(Piece(Rect(57, y, 50, 50), "Q", self.player))
-        self.pieces.add(Piece(Rect(107, y, 50, 50), "LB", self.player))
-        self.pieces.add(Piece(Rect(163, y, 50, 50), "LK", self.player))
-        self.pieces.add(Piece(Rect(217, y, 50, 50), "LR", self.player))
+        self.pieces.add(Piece(Rect(217, y, 50, 50), "RR", self))
+        self.pieces.add(Piece(Rect(163, y, 50, 50), "RK", self))
+        self.pieces.add(Piece(Rect(107, y, 50, 50), "RB", self))
+        self.pieces.add(Piece(Rect(5, y, 50, 50), "K", self))
+        self.pieces.add(Piece(Rect(57, y, 50, 50), "Q", self))
+        self.pieces.add(Piece(Rect(107, y, 50, 50), "LB", self))
+        self.pieces.add(Piece(Rect(163, y, 50, 50), "LK", self))
+        self.pieces.add(Piece(Rect(217, y, 50, 50), "LR", self))
         for i in range(8):
-            self.pieces.add(Piece(Rect(267, y, 50, 50), "P{0}".format(i+1), self.player))
+            self.pieces.add(Piece(Rect(267, y, 50, 50), "P{0}".format(i+1), self))
         if self.player == 1:
             square_index = 0
             for piece in self.pieces:
@@ -145,6 +167,8 @@ class Player:
                 piece.kill()
 
     def checkPath(self, pieceToMove, destinationSquare):
+        if pieceToMove.name == "K":
+            return True
         if pieceToMove.name == "Q":
             if destinationSquare.x == pieceToMove.rect.x:
                 diff = abs(pieceToMove.rect.y - destinationSquare.y)
