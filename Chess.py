@@ -21,19 +21,15 @@ class Piece(pygame.sprite.Sprite):
         if self.name[0] == "P":
             if self.team == 1:
                 if not self.moved:
-                    print("Not moved")
                     if abs(self.rect.y - y) <= 100 and y - self.rect.y > 0 and self.rect.x - x == 0:
                         self.moved = True
-                        print("Moved")
                         return True
                 elif abs(self.rect.y - y) == 50 and y - self.rect.y > 0 and self.rect.x - x == 0:
                     return True
             elif self.team == 2:
                 if not self.moved:
-                    print("Not moved")
                     if abs(self.rect.y - y) <= 100 and y - self.rect.y < 0 and self.rect.x - x == 0:
                         self.moved = True
-                        print("Moved")
                         return True
                 elif abs(self.rect.y - y) == 50 and y - self.rect.y < 0 and self.rect.x - x == 0:
                     return True
@@ -96,7 +92,16 @@ class Player:
                 square = self.board.squares[square_index]
                 piece.rect = Rect(square.x, square.y, 50, 50)
                 square_index -= 1
-
+            for piece in self.pieces:
+                if piece.name == "K":
+                    Qx, Qy = piece.rect.x, piece.rect.y
+                if piece.name == "Q":
+                    Kx, Ky = piece.rect.x, piece.rect.y
+            for piece in self.pieces:
+                if piece.name == "K":
+                    piece.rect.x, piece.rect.y = Kx, Ky
+                if piece.name == "Q":
+                    piece.rect.x, piece.rect.y = Qx, Qy
 
 
     def drawPieces(self):
@@ -118,11 +123,11 @@ class Player:
                     quit()
             if ev.type == MOUSEBUTTONUP:
                 x, y = pygame.mouse.get_pos()
-                if selectedAPiece == True:
+                if selectedAPiece:
                     for square in self.board.squares:
                         if square.collidepoint(x, y):
                             for piece in self.pieces:
-                                if piece.rect.x == square.x and piece.rect.y == square.y:
+                                if (piece.rect.x, piece.rect.y) == (square.x, square.y):
                                     pieceBlocking = True
                             if not pieceBlocking:
                                 if self.checkPath(selectedPiece, square):
@@ -131,32 +136,181 @@ class Player:
                                         choice = True
                 for piece in self.pieces:
                     if piece.rect.collidepoint(x, y):
-                        print(piece.name)
                         selectedPiece = piece
                         selectedAPiece = True
 
     def checkTakePiece(self, pieceMoved):
         for piece in self.opponent.pieces:
-            if (piece.rect.x == pieceMoved.rect.x and piece.rect.y == pieceMoved.rect.y):
+            if (piece.rect.x, piece.rect.y) == (pieceMoved.rect.x, pieceMoved.rect.y):
                 piece.kill()
 
     def checkPath(self, pieceToMove, destinationSquare):
-        print(pieceToMove.name)
-        if pieceToMove.name == "RR":
-            print("Checking Rooks Path")
-            if destinationSquare.x - pieceToMove.rect.x == 0:
+        if pieceToMove.name == "Q":
+            if destinationSquare.x == pieceToMove.rect.x:
                 diff = abs(pieceToMove.rect.y - destinationSquare.y)
-                diff = diff % 50
+                diff = diff // 50
                 for i in range(1, diff):
                     add = i * 50
-                    if pieceToMove.rect.y - destinationSquare.y < 0:
+                    if pieceToMove.rect.y < destinationSquare.y:
                         for piece in self.pieces:
-                            if piece.rect.x == pieceToMove.rect.x and piece.rect.y == (pieceToMove.rect.y + add):
-                                print("You got blocked")
+                            if (piece.rect.x, piece.rect.y) == (pieceToMove.rect.x, (pieceToMove.rect.y + add)):
                                 return False
-            elif destinationSquare.y - pieceToMove.rect.y == 0:
-                diff = abs(pieceToMove.rect.x - destinationSquare.x) - 50
-                diff = diff % 50
+                        for piece in self.opponent.pieces:
+                            if (piece.rect.x, piece.rect.y) == (pieceToMove.rect.x, (pieceToMove.rect.y + add)):
+                                return False
+                    if pieceToMove.rect.y > destinationSquare.y:
+                        for piece in self.pieces:
+                            if (piece.rect.x, piece.rect.y) == (pieceToMove.rect.x, (pieceToMove.rect.y - add)):
+                                return False
+                        for piece in self.opponent.pieces:
+                            if (piece.rect.x, piece.rect.y) == (pieceToMove.rect.x, (pieceToMove.rect.y - add)):
+                                return False
+            elif destinationSquare.y == pieceToMove.rect.y:
+                diff = abs(pieceToMove.rect.x - destinationSquare.x)
+                diff = diff // 50
+                for i in range(1, diff):
+                    add = i * 50
+                    if pieceToMove.rect.x < destinationSquare.x:
+                        for piece in self.pieces:
+                            if (piece.rect.y, piece.rect.x) == (pieceToMove.rect.y, (pieceToMove.rect.x + add)):
+                                return False
+                        for piece in self.opponent.pieces:
+                            if (piece.rect.y, piece.rect.x) == (pieceToMove.rect.y, (pieceToMove.rect.x + add)):
+                                return False
+                    if pieceToMove.rect.x > destinationSquare.x:
+                        for piece in self.pieces:
+                            if (piece.rect.y, piece.rect.x) == (pieceToMove.rect.y, (pieceToMove.rect.x - add)):
+                                return False
+                        for piece in self.opponent.pieces:
+                            if (piece.rect.y, piece.rect.x) == (pieceToMove.rect.y, (pieceToMove.rect.x - add)):
+                                return False
+            elif destinationSquare.x > pieceToMove.rect.x:
+                diff = abs(pieceToMove.rect.x - destinationSquare.x)
+                diff = diff // 50
+                if destinationSquare.y > pieceToMove.rect.y:
+                    for i in range(1, diff):
+                        add = i * 50
+                        for piece in self.pieces:
+                            if (piece.rect.y, piece.rect.x) == ((pieceToMove.rect.y + add), (pieceToMove.rect.x + add)):
+                                return False
+                        for piece in self.opponent.pieces:
+                            if (piece.rect.y, piece.rect.x) == ((pieceToMove.rect.y + add), (pieceToMove.rect.x + add)):
+                                return False
+                if destinationSquare.y < pieceToMove.rect.y:
+                    for i in range(1, diff):
+                        add = i * 50
+                        for piece in self.pieces:
+                            if (piece.rect.y, piece.rect.x) == ((pieceToMove.rect.y - add), (pieceToMove.rect.x + add)):
+                                return False
+                        for piece in self.opponent.pieces:
+                            if (piece.rect.y, piece.rect.x) == ((pieceToMove.rect.y - add), (pieceToMove.rect.x + add)):
+                                return False
+            elif destinationSquare.x < pieceToMove.rect.x:
+                diff = abs(pieceToMove.rect.x - destinationSquare.x)
+                diff = diff // 50
+                if destinationSquare.y > pieceToMove.rect.y:
+                    for i in range(1, diff):
+                        add = i * 50
+                        for piece in self.pieces:
+                            if (piece.rect.y, piece.rect.x) == ((pieceToMove.rect.y + add), (pieceToMove.rect.x - add)):
+                                return False
+                        for piece in self.opponent.pieces:
+                            if (piece.rect.y, piece.rect.x) == ((pieceToMove.rect.y + add), (pieceToMove.rect.x - add)):
+                                return False
+                if destinationSquare.y < pieceToMove.rect.y:
+                    for i in range(1, diff):
+                        add = i * 50
+                        for piece in self.pieces:
+                            if (piece.rect.y, piece.rect.x) == ((pieceToMove.rect.y - add), (pieceToMove.rect.x - add)):
+                                return False
+                        for piece in self.opponent.pieces:
+                            if (piece.rect.y, piece.rect.x) == ((pieceToMove.rect.y - add), (pieceToMove.rect.x - add)):
+                                return False
+
+        elif pieceToMove.name[0] == "P" or pieceToMove.name[1] == "R":
+            if destinationSquare.x == pieceToMove.rect.x:
+                diff = abs(pieceToMove.rect.y - destinationSquare.y)
+                diff = diff // 50
+                for i in range(1, diff):
+                    add = i * 50
+                    if pieceToMove.rect.y < destinationSquare.y:
+                        for piece in self.pieces:
+                            if (piece.rect.x, piece.rect.y) == (pieceToMove.rect.x, (pieceToMove.rect.y + add)):
+                                return False
+                        for piece in self.opponent.pieces:
+                            if (piece.rect.x, piece.rect.y) == (pieceToMove.rect.x, (pieceToMove.rect.y + add)):
+                                return False
+                    if pieceToMove.rect.y > destinationSquare.y:
+                        for piece in self.pieces:
+                            if (piece.rect.x, piece.rect.y) == (pieceToMove.rect.x, (pieceToMove.rect.y - add)):
+                                return False
+                        for piece in self.opponent.pieces:
+                            if (piece.rect.x, piece.rect.y) == (pieceToMove.rect.x, (pieceToMove.rect.y - add)):
+                                return False
+            elif destinationSquare.y == pieceToMove.rect.y:
+                diff = abs(pieceToMove.rect.x - destinationSquare.x)
+                diff = diff // 50
+                for i in range(1, diff):
+                    add = i * 50
+                    if pieceToMove.rect.x < destinationSquare.x:
+                        for piece in self.pieces:
+                            if (piece.rect.y, piece.rect.x) == (pieceToMove.rect.y, (pieceToMove.rect.x + add)):
+                                return False
+                        for piece in self.opponent.pieces:
+                            if (piece.rect.y, piece.rect.x) == (pieceToMove.rect.y, (pieceToMove.rect.x + add)):
+                                return False
+                    if pieceToMove.rect.x > destinationSquare.x:
+                        for piece in self.pieces:
+                            if (piece.rect.y, piece.rect.x) == (pieceToMove.rect.y, (pieceToMove.rect.x - add)):
+                                return False
+                        for piece in self.opponent.pieces:
+                            if (piece.rect.y, piece.rect.x) == (pieceToMove.rect.y, (pieceToMove.rect.x - add)):
+                                return False
+
+        elif pieceToMove.name[1] == "B":
+            if destinationSquare.x > pieceToMove.rect.x:
+                diff = abs(pieceToMove.rect.x - destinationSquare.x)
+                diff = diff // 50
+                if destinationSquare.y > pieceToMove.rect.y:
+                    for i in range(1, diff):
+                        add = i * 50
+                        for piece in self.pieces:
+                            if (piece.rect.y, piece.rect.x) == ((pieceToMove.rect.y + add), (pieceToMove.rect.x + add)):
+                                return False
+                        for piece in self.opponent.pieces:
+                            if (piece.rect.y, piece.rect.x) == ((pieceToMove.rect.y + add), (pieceToMove.rect.x + add)):
+                                return False
+                if destinationSquare.y < pieceToMove.rect.y:
+                    for i in range(1, diff):
+                        add = i * 50
+                        for piece in self.pieces:
+                            if (piece.rect.y, piece.rect.x) == ((pieceToMove.rect.y - add), (pieceToMove.rect.x + add)):
+                                return False
+                        for piece in self.opponent.pieces:
+                            if (piece.rect.y, piece.rect.x) == ((pieceToMove.rect.y - add), (pieceToMove.rect.x + add)):
+                                return False
+            elif destinationSquare.x < pieceToMove.rect.x:
+                diff = abs(pieceToMove.rect.x - destinationSquare.x)
+                diff = diff // 50
+                if destinationSquare.y > pieceToMove.rect.y:
+                    for i in range(1, diff):
+                        add = i * 50
+                        for piece in self.pieces:
+                            if (piece.rect.y, piece.rect.x) == ((pieceToMove.rect.y + add), (pieceToMove.rect.x - add)):
+                                return False
+                        for piece in self.opponent.pieces:
+                            if (piece.rect.y, piece.rect.x) == ((pieceToMove.rect.y + add), (pieceToMove.rect.x - add)):
+                                return False
+                if destinationSquare.y < pieceToMove.rect.y:
+                    for i in range(1, diff):
+                        add = i * 50
+                        for piece in self.pieces:
+                            if (piece.rect.y, piece.rect.x) == ((pieceToMove.rect.y - add), (pieceToMove.rect.x - add)):
+                                return False
+                        for piece in self.opponent.pieces:
+                            if (piece.rect.y, piece.rect.x) == ((pieceToMove.rect.y - add), (pieceToMove.rect.x - add)):
+                                return False
+
         return True
 
 class Board:
