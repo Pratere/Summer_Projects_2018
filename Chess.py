@@ -20,7 +20,7 @@ class Piece(pygame.sprite.Sprite):
     def checkLegality(self, x, y):
         if self.name[0] == "P":
             if self.team.player == 1:
-                if y - self.rect.y <= 100 and abs(x - self.rect.x) == 50:
+                if y - self.rect.y <= 100 and y-self.rect.y > 0 and abs(x - self.rect.x) == 50:
                     for piece in self.team.opponent.pieces:
                         if (piece.rect.x, piece.rect.y) == (x, y):
                             self.moved = True
@@ -38,7 +38,7 @@ class Piece(pygame.sprite.Sprite):
                             return False
                     return True
             else:
-                if self.rect.y - y <= 100 and abs(x - self.rect.x) == 50:
+                if self.rect.y - y <= 100 and y-self.rect.y < 0 and abs(x - self.rect.x) == 50:
                     for piece in self.team.opponent.pieces:
                         if (piece.rect.x, piece.rect.y) == (x, y):
                             self.moved = True
