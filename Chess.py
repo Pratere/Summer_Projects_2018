@@ -155,6 +155,8 @@ class Player:
                                 if self.checkPath(selectedPiece, square):
                                     if selectedPiece.moveIt(square.x, square.y):
                                         self.checkTakePiece(selectedPiece)
+                                        self.checkCheck()
+                                        self.opponent.checkCheck()
                                         choice = True
                 for piece in self.pieces:
                     if piece.rect.collidepoint(x, y):
@@ -336,6 +338,172 @@ class Player:
                                 return False
 
         return True
+
+
+    def checkCheck(self):
+        pieceRight = False
+        pieceLeft = False
+        pieceUp = False
+        pieceDown = False
+        pieceDR = False
+        pieceDL = False
+        pieceUR = False
+        pieceUL = False
+        for piece in self.pieces:
+            if piece.name == "K":
+                toRight = abs(piece.rect.x - 350)
+                toLeft = 350 - toRight
+                toDown = abs(piece.rect.y - 350)
+                toUp = 350 - toDown
+                if toRight > toUp:
+                    toUR = toUp
+                else:
+                    toUR = toRight
+
+                if toLeft > toUp:
+                    toUL = toUp
+                else:
+                    toUL = toRight
+
+                if toRight > toDown:
+                    toDR = toDown
+                else:
+                    toDR = toRight
+
+                if toLeft > toDown:
+                    toDL = toDown
+                else:
+                    toDL = toLeft
+
+                for i in range(1, toRight):
+                    xcheck = i * 50
+                    for apiece in self.pieces:
+                        if (apiece.rect.y, apiece.rect.x) == ((piece.rect.y), (piece.rect.x  +xcheck)):
+                            print(apiece.name)
+                            pieceRight = True
+                            break
+                    if not pieceRight:
+                        for opiece in self.opponent.pieces:
+                            if (opiece.rect.y, opiece.rect.x) == ((piece.rect.y), (piece.rect.x  + xcheck)):
+                                if opiece.name == "K":
+                                    break
+                                elif opiece.name != "Q" and opiece.name[1] != "R":
+                                    print("I should print twice")
+                                    break
+                                else:
+                                    print("I have you now")
+                for i in range(1, toLeft):
+                    xcheck = i * 50
+                    for apiece in self.pieces:
+                        if (apiece.rect.y, apiece.rect.x) == ((piece.rect.y), (piece.rect.x  - xcheck)):
+                            pieceLeft = True
+                            break
+                    if not pieceLeft:
+                        for opiece in self.opponent.pieces:
+                            if (opiece.rect.y, opiece.rect.x) == ((piece.rect.y), (piece.rect.x  - xcheck)):
+                                if opiece.name == "K":
+                                    break
+                                if opiece.name != "Q" and opiece.name[1] != "R":
+                                    break
+                                else:
+                                    print("I have you now")
+                for i in range(1, toUp):
+                    ycheck = i * 50
+                    for apiece in self.pieces:
+                        if (apiece.rect.y, apiece.rect.x) == ((piece.rect.y  - ycheck), (piece.rect.x)):
+                            print(apiece.name)
+                            pieceUp = True
+                            break
+                    if not pieceUp:
+                        for opiece in self.opponent.pieces:
+                            if (opiece.rect.y, opiece.rect.x) == ((piece.rect.y  - ycheck), (piece.rect.x)):
+                                print(opiece.name)
+                                if opiece.name == "K":
+                                    break
+                                if opiece.name != "Q" and opiece.name[1] != "R":
+                                    break
+                                else:
+                                    print("I have you now")
+                for i in range(1, toDown):
+                    ycheck = i * 50
+                    for apiece in self.pieces:
+                        if (apiece.rect.y, apiece.rect.x) == ((piece.rect.y  + ycheck), (piece.rect.x)):
+                            pieceDown = True
+                            break
+                    if not pieceDown:
+                        for opiece in self.opponent.pieces:
+                            if (opiece.rect.y, opiece.rect.x) == ((piece.rect.y  + ycheck), (piece.rect.x)):
+                                if opiece.name == "K":
+                                    break
+                                if opiece.name != "Q" and opiece.name[1] != "R":
+                                    break
+                                else:
+                                    print("I have you now")
+                for i in range(1, toUR):
+                    xcheck = i * 50
+                    ycheck = i * 50
+                    for apiece in self.pieces:
+                        if (apiece.rect.y, apiece.rect.x) == ((piece.rect.y  - ycheck), (piece.rect.x + xcheck)):
+                            pieceUR = True
+                            break
+                    if not pieceUR:
+                        for opiece in self.opponent.pieces:
+                            if (opiece.rect.y, opiece.rect.x) == ((piece.rect.y  - ycheck), (piece.rect.x + xcheck)):
+                                if opiece.name == "K":
+                                    break
+                                if opiece.name != "Q" and opiece.name[1] != "B":
+                                    break
+                                else:
+                                    print("I have you now")
+                for i in range(1, toUL):
+                    xcheck = i * 50
+                    ycheck = i * 50
+                    for apiece in self.pieces:
+                        if (apiece.rect.y, apiece.rect.x) == ((piece.rect.y  - ycheck), (piece.rect.x - xcheck)):
+                            pieceUL = True
+                            break
+                    if not pieceUL:
+                        for opiece in self.opponent.pieces:
+                            if (opiece.rect.y, opiece.rect.x) == ((piece.rect.y  - ycheck), (piece.rect.x - xcheck)):
+                                if opiece.name == "K":
+                                    break
+                                if opiece.name != "Q" and opiece.name[1] != "B":
+                                    break
+                                else:
+                                    print("I have you now")
+                for i in range(1, toDR):
+                    xcheck = i * 50
+                    ycheck = i * 50
+                    for apiece in self.pieces:
+                        if (apiece.rect.y, apiece.rect.x) == ((piece.rect.y  + ycheck), (piece.rect.x + xcheck)):
+                            pieceDR = True
+                            break
+                    if not pieceDR:
+                        for opiece in self.opponent.pieces:
+                            if (opiece.rect.y, opiece.rect.x) == ((piece.rect.y + ycheck), (piece.rect.x + xcheck)):
+                                if opiece.name == "K":
+                                    break
+                                if opiece.name != "Q" and opiece.name[1] != "B":
+                                    break
+                                else:
+                                    print("I have you now")
+                for i in range(1, toDL):
+                    xcheck = i * 50
+                    ycheck = i * 50
+                    for apiece in self.pieces:
+                        if (apiece.rect.y, apiece.rect.x) == ((piece.rect.y  + ycheck), (piece.rect.x - xcheck)):
+                            pieceUR = True
+                            break
+                    if not pieceDL:
+                        for opiece in self.opponent.pieces:
+                            if (opiece.rect.y, opiece.rect.x) == ((piece.rect.y  + ycheck), (piece.rect.x - xcheck)):
+                                if opiece.name == "K":
+                                    break
+                                if opiece.name != "Q" and opiece.name[1] != "B":
+                                    break
+                                else:
+                                    print("I have you now")
+
 
 class Board:
     def __init__(self, window):
